@@ -1,0 +1,42 @@
+#!/bin/bash
+#SBATCH --ntasks=1
+#SBATCH --job-name=GenomicsDBImport_newcovid19
+#SBATCH --cpus-per-task=4
+#SBATCH --time=168:00:00
+#SBATCH --partition=oneweek
+#SBATCH --mem-per-cpu=8G
+#SBATCH --array=1-50
+#SBATCH --output=4.GenomicsDBImport_newcovid19-%A_%a
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=jjung658@usc.edu
+
+# interval file: https://console.cloud.google.com/storage/browser/gcp-public-data--broad-references/hg38/v0/HybSelOligos;tab=objects?prefix=&forceOnObjectsSortingFiltering=false
+
+#tools_newcovid19/gatk-4.2.0.0/gatk SplitIntervals \
+#  -R ref_dat/ref_gatk_newcovid19/Homo_sapiens_assembly38.fasta \
+#  -L ref_dat/whole_exome_illumina_coding_v1/whole_exome_illumina_coding_v1.Homo_sapiens_assembly38.targets.interval_list \
+#  --scatter-count 50 \
+#  -O ref_dat/wes_scattered_calling_50intervals
+#
+#
+#for i in `seq -f %04g 0 49`;
+#do
+#echo ref_dat/wes_scattered_calling_50intervals/$i-scattered.interval_list >> \
+#  ref_dat/wes.50interval_1ndex.txt;
+#done
+
+
+i=$SLURM_ARRAY_TASK_ID
+sel=$(sed -n $i'p' ref_dat/wes.50interval_index.txt)
+
+module load gcc
+module load jdk
+
+tools_newcovid19/gatk-4.2.0.0/gatk --java-options "-Xmx24g" GenomicsDBImport \
+  --genomicsdb-workspace-path res_gatk4_newcovid19/GenomicsDBImport_gatk4_newcovid19/gatk4_newcovid19_database_${i} \
+  --sample-name-map res_gatk4_newcovid19/input_hail \
+  --tmp-dir res_gatk4_newcovid19/tmp \
+  -L ${sel} \
+  --reader-threads 5 \
+  --batch-size 50 \
+  --merge-input-intervals

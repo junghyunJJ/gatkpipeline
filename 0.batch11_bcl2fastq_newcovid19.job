@@ -11,6 +11,10 @@ module load gcc
 module load intel
 module load bcl2fastq2
 
-date
-bcl2fastq --barcode-mismatches 0 --no-lane-splitting -R res_bcl2fastq/batch11/210121_A00308_0067_AH7H5CDMXX/ --sample-sheet res_bcl2fastq/WES_Covid_Batch_11_JJ.csv -r 6 -p 6 -w 6 -o res_bcl2fastq/batch11/
-date
+bcl2fastq \
+  --barcode-mismatches 0 \
+  --no-lane-splitting \
+  -R res_bcl2fastq/batch11/210121_A00308_0067_AH7H5CDMXX/ \
+  --sample-sheet res_bcl2fastq/WES_Covid_Batch_11_JJ.csv 
+  -r 6 -p 6 -w 6 \
+  -o res_bcl2fastq/batch11/

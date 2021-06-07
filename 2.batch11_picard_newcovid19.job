@@ -1,0 +1,31 @@
+#!/bin/bash
+#SBATCH --ntasks=1
+#SBATCH --job-name=2.11_picard_newcovid19
+#SBATCH --cpus-per-task=1
+#SBATCH --time=2:50:00
+#SBATCH --mem=64GB
+#SBATCH --array=1-96
+#SBATCH --output=2.batch11_picard_newcovid19-%A_%a
+
+i=$SLURM_ARRAY_TASK_ID
+srr=$(sed -n $i'p' res_bcl2fastq/batch11_list.txt)
+
+
+module load gcc
+module load jdk
+
+java -Djava.io.tmpdir=/home1/jjung658/scratch2/newcovid19/ -jar tools_newcovid19/picard-tools-2.4.1/picard.jar SortSam \
+      I=res_mapping_newcovid19/batch11_res_mapping_newcovid19/${srr}/${srr}_batch11.sam \
+      O=res_mapping_newcovid19/batch11_res_mapping_newcovid19/${srr}/${srr}_sorted_batch11.bam \
+      SORT_ORDER=coordinate \
+      CREATE_INDEX=true
+
+
+java -Djava.io.tmpdir=/home1/jjung658/scratch2/newcovid19/ -jar tools_newcovid19/picard-tools-2.4.1/picard.jar MarkDuplicates \
+        I=res_mapping_newcovid19/batch11_res_mapping_newcovid19/${srr}/${srr}_sorted_batch11.bam \
+        O=res_mapping_newcovid19/batch11_res_mapping_newcovid19/${srr}/${srr}_dedup_batch11.bam \
+        M=res_mapping_newcovid19/batch11_res_mapping_newcovid19/${srr}/${srr}_marked_dup_metrics_batch11.txt \
+        CREATE_INDEX=true
+
+rm res_mapping_newcovid19/batch11_res_mapping_newcovid19/${srr}/${srr}_batch11.sam
+

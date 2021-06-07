@@ -1,0 +1,22 @@
+#!/bin/bash
+#SBATCH --ntasks=1
+#SBATCH --job-name=1.11_mapping_newcovid19
+#SBATCH --cpus-per-task=4
+#SBATCH --time=4:00:00
+#SBATCH --mem=32GB
+#SBATCH --array=1-96
+#SBATCH --output=1.batch11_mapping_newcovid19-%A_%a
+
+i=$SLURM_ARRAY_TASK_ID
+srr=$(sed -n $i'p' res_bcl2fastq/batch11_list.txt)
+
+mkdir -p res_mapping_newcovid19/batch11_res_mapping_newcovid19/${srr}
+
+# reference: http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/GRCh38_reference_genome/
+tools_newcovid19/bwa-0.7.15/bwa mem \
+  -R @RG\\tID:batch11\\tSM:${srr}\\tPL:ILLUMINA\\t:LB:TruSeq1\\tPU:unit1 \
+  -t 4 -v 3 \
+  ref_dat/GRCh38DH/GRCh38_full_analysis_set_plus_decoy_hla.fa \
+  res_bcl2fastq/batch11/${srr}_R1_001.fastq.gz \
+  res_bcl2fastq/batch11/${srr}_R2_001.fastq.gz > \
+  res_mapping_newcovid19/batch11_res_mapping_newcovid19/${srr}/${srr}_batch11.sam

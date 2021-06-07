@@ -1,0 +1,28 @@
+#!/bin/bash
+#SBATCH --ntasks=1
+#SBATCH --job-name=GenotypeGVCFs_gatk4_newcovid19
+#SBATCH --cpus-per-task=1
+#SBATCH --mem-per-cpu=32G
+#SBATCH --time=168:00:00
+#SBATCH --partition=oneweek
+#SBATCH --array=1-50
+#SBATCH --output=5.GenotypeGVCFs_gatk4_newcovid19-%A_%a
+
+i=$SLURM_ARRAY_TASK_ID
+sel=$(sed -n $i'p' ref_dat/wes.50interval_index.txt)
+
+module load gcc
+module load jdk
+
+
+tools_newcovid19/gatk-4.2.0.0/gatk --java-options "-Xmx24g" GenotypeGVCFs \
+        -R ref_dat/ref_gatk_newcovid19/Homo_sapiens_assembly38.fasta \
+        -G StandardAnnotation -G AS_StandardAnnotation \
+        --only-output-calls-starting-in-intervals \
+        --use-new-qual-calculator \
+        --merge-input-intervals \
+        -D ref_dat/ref_gatk_newcovid19/Homo_sapiens_assembly38.dbsnp138.vcf \
+        -V gendb://res_gatk4_newcovid19/GenomicsDBImport_gatk4_newcovid19/gatk4_newcovid19_database_${i}/ \
+        -L ${sel} \
+        --tmp-dir res_gatk4_newcovid19/tmp \
+        -O res_gatk4_newcovid19/res_vcf_gatk4_newcovid19/gatk4_newcovid19_${i}.vcf.gz
